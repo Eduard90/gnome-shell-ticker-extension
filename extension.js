@@ -38,8 +38,7 @@ class Extension {
         return `${Me.path}/${name}`;
     }
     load_json_async(url, fun) {
-        log("load_json_async");
-        log(url);
+        log(`Loading: ${url}`)
         let here = this;
         let session = new Soup.SessionAsync();
         let message = Soup.Message.new('GET', url);
