@@ -32,6 +32,7 @@ class Extension {
     constructor() {
         this.apiUrl = "https://api.coindesk.com/v1/bpi/currentprice/BTC.json";
         this.refreshSeconds = 60;
+        this.lastUpdateTime = null;
     }
 
     iconPath(name) {
@@ -57,6 +58,9 @@ class Extension {
                 let btcUsdPrice = json.get_object_member('bpi').get_object_member('USD').get_double_member('rate_float');
                 btcUsdPrice = parseInt(btcUsdPrice);
                 topLabel.set_text(`$ ${btcUsdPrice}`);
+                self.lastUpdateTime = new Date();
+                const lastUpdateText = self.lastUpdateTime.toLocaleFormat("%H:%M:%S");
+                self.lastUpdateLabel.set_text(`Last: ${lastUpdateText}`)
             });
         }
 
@@ -66,6 +70,22 @@ class Extension {
         let snoozeTimeoutId = 0;
 
         this.btcPriceButton = new PanelMenu.Button(1, "BTCPriceBtn", false);
+        let tickerMenu = this.btcPriceButton.menu;
+        
+        this.lastUpdateLabel = new St.Label({
+            text: "Last: ...",
+            style: "margin: 1px 1px 5px 1px; font-size: medium; text-align: center;",
+        });
+        this.lastUpdateLabel._delegate = null;
+        tickerMenu.box.add(this.lastUpdateLabel);
+        
+        // Add Refresh item
+        let menuRefreshItem = new PopupMenu.PopupMenuItem("Refresh");
+        menuRefreshItem.connect("activate", (menuItem, event) => {
+            log("Force refresh...");
+            updatePrice(this);
+        });
+        tickerMenu.addMenuItem(menuRefreshItem);
 
         let box = new St.BoxLayout();
 
@@ -77,13 +97,11 @@ class Extension {
         
         box.add(icon);
         
-        let topLabel = new St.Label(
-            {
-                text: 'BTC price ...',
-                y_expand: true,
-                y_align: Clutter.ActorAlign.CENTER      
-            }
-        );
+        let topLabel = new St.Label({
+            text: 'BTC price ...',
+            y_expand: true,
+            y_align: Clutter.ActorAlign.CENTER
+        });
         box.add(topLabel);
         //box.add(PopupMenu.arrowIcon(St.Side.BOTTOM));
 
