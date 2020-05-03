@@ -1,0 +1,1 @@
+# Gnome Shell Ticker Extension
